@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Collateralized Loan DApp</title>
+
+<script src="https://cdn.jsdelivr.net/npm/ethers@6.13.4/dist/ethers.umd.min.js"></script>
+
+<style>
+body{
+    font-family:Arial,sans-serif;
+    background:#0f172a;
+    color:white;
+    max-width:1000px;
+    margin:auto;
+    padding:20px;
+}
+
+.card{
+    background:#1e293b;
+    padding:20px;
+    margin-bottom:20px;
+    border-radius:10px;
+}
+
+input{
+    width:100%;
+    padding:10px;
+    margin-top:5px;
+    margin-bottom:10px;
+}
+
+button{
+    padding:10px 15px;
+    border:none;
+    background:#3b82f6;
+    color:white;
+    border-radius:5px;
+    cursor:pointer;
+}
+
+button:hover{
+    background:#2563eb;
+}
+
+pre{
+    background:#020617;
+    padding:10px;
+    overflow:auto;
+}
+</style>
+</head>
+<body>
+
+<h1>Collateralized Loan DApp</h1>
+
+<div class="card">
+    <button onclick="connectWallet()">Connect MetaMask</button>
+    <p id="wallet"></p>
+</div>
+
+<div class="card">
+    <h2>Create Loan</h2>
+
+    <input id="interest" placeholder="Interest Rate (500 = 5%)">
+    <input id="duration" placeholder="Duration Seconds">
+
+    <input id="collateral" placeholder="Collateral ETH">
+
+    <button onclick="createLoan()">Request Loan</button>
+</div>
+
+<div class="card">
+    <h2>Loan Details</h2>
+
+    <input id="loanId" placeholder="Loan ID">
+
+    <button onclick="viewLoan()">Load Loan</button>
+
+    <pre id="loanOutput"></pre>
+</div>
+
+<div class="card">
+    <h2>Repayment Amount</h2>
+
+    <input id="repayLoanId" placeholder="Loan ID">
+
+    <button onclick="repaymentAmount()">Get Amount</button>
+
+    <pre id="repayOutput"></pre>
+</div>
+
+<div class="card">
+    <h2>Fund Loan</h2>
+
+    <input id="fundLoanId" placeholder="Loan ID">
+
+    <button onclick="fundLoan()">Fund</button>
+</div>
+
+<div class="card">
+    <h2>Repay Loan</h2>
+
+    <input id="repayId" placeholder="Loan ID">
+
+    <button onclick="repayLoan()">Repay</button>
+</div>
+
+<div class="card">
+    <h2>Claim Collateral</h2>
+
+    <input id="claimId" placeholder="Loan ID">
+
+    <button onclick="claimCollateral()">Claim</button>
+</div>
+
+<script>
+
+const CONTRACT_ADDRESS =
+"0xB382B04e3c6d914aBb50D8CBB975446A5540aBc6";
+
+const ABI = [
+ "function nextLoanId() view returns(uint256)",
+ "function loans(uint256) view returns(address borrower,address lender,uint256 collateralAmount,uint256 loanAmount,uint256 interestRate,uint256 dueDate,bool isFunded,bool isRepaid)",
+ "function getRepaymentAmount(uint256) view returns(uint256)",
+ "function depositCollateralAndRequestLoan(uint256,uint256) payable",
+ "function fundLoan(uint256) payable",
+ "function repayLoan(uint256) payable",
+ "function claimCollateral(uint256)"
+];
+
+let provider;
+let signer;
+let contract;
+
+async function connectWallet(){
+
+    provider =
+        new ethers.BrowserProvider(window.ethereum);
+
+    await provider.send(
+        "eth_requestAccounts",
+        []
+    );
+
+    signer =
+        await provider.getSigner();
+
+    contract =
+        new ethers.Contract(
+            CONTRACT_ADDRESS,
+            ABI,
+            signer
+        );
+
+    document.getElementById("wallet")
+        .innerHTML =
+        await signer.getAddress();
+}
+
+async function createLoan(){
+
+    const interest =
+        document.getElementById("interest").value;
+
+    const duration =
+        document.getElementById("duration").value;
+
+    const collateral =
+        document.getElementById("collateral").value;
+
+    const tx =
+        await contract.depositCollateralAndRequestLoan(
+            interest,
+            duration,
+            {
+                value:
+                ethers.parseEther(collateral)
+            }
+        );
+
+    await tx.wait();
+
+    alert("Loan Created");
+}
+
+async function viewLoan(){
+
+    const id =
+        document.getElementById("loanId").value;
+
+    const loan =
+        await contract.loans(id);
+
+    document.getElementById("loanOutput")
+        .textContent =
+        JSON.stringify(
+            loan,
+            (_,v)=>
+            typeof v==="bigint"
+            ? v.toString()
+            : v,
+            2
+        );
+}
+
+async function repaymentAmount(){
+
+    const id =
+        document.getElementById(
+            "repayLoanId"
+        ).value;
+
+    const amount =
+        await contract.getRepaymentAmount(id);
+
+    document.getElementById("repayOutput")
+        .innerHTML =
+        ethers.formatEther(amount)
+        + " ETH";
+}
+
+async function fundLoan(){
+
+    const id =
+        document.getElementById(
+            "fundLoanId"
+        ).value;
+
+    const loan =
+        await contract.loans(id);
+
+    const tx =
+        await contract.fundLoan(
+            id,
+            {
+                value: loan.loanAmount
+            }
+        );
+
+    await tx.wait();
+
+    alert("Loan Funded");
+}
+
+async function repayLoan(){
+
+    const id =
+        document.getElementById(
+            "repayId"
+        ).value;
+
+    const amount =
+        await contract.getRepaymentAmount(id);
+
+    const tx =
+        await contract.repayLoan(
+            id,
+            {
+                value: amount
+            }
+        );
+
+    await tx.wait();
+
+    alert("Loan Repaid");
+}
+
+async function claimCollateral(){
+
+    const id =
+        document.getElementById(
+            "claimId"
+        ).value;
+
+    const tx =
+        await contract.claimCollateral(id);
+
+    await tx.wait();
+
+    alert("Collateral Claimed");
+}
+</script>
+</body>
+</html>
