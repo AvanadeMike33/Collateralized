@@ -1,6 +1,9 @@
 # Collateralized
-[Sepolia PoW Faucet](https://sepolia-faucet.pk910.de/#/claim/6163d569-6c79-4058-a4cb-489569a8162c)
-[Collateralized](https://avanademike33.github.io/Collateralized)
+APP [Collateralized](https://avanademike33.github.io/Collateralized)
+
+
+MINER [Sepolia PoW Faucet](https://sepolia-faucet.pk910.de/#/claim/6163d569-6c79-4058-a4cb-489569a8162c)
+
 
 <img width="2544" height="928" alt="image" src="https://github.com/user-attachments/assets/0edbdd91-0123-4cb0-8bee-937fe6526313" />
 <img width="2542" height="954" alt="image" src="https://github.com/user-attachments/assets/a6d4f62c-d191-4807-9893-72571609130f" />
