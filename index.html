@@ -29,6 +29,7 @@ input{
     padding:10px;
     margin-top:5px;
     margin-bottom:10px;
+    box-sizing:border-box;
 }
 
 button{
@@ -48,6 +49,12 @@ pre{
     background:#020617;
     padding:10px;
     overflow:auto;
+    color:#22c55e;
+}
+
+.status{
+    color:#fbbf24;
+    font-weight:bold;
 }
 </style>
 </head>
@@ -57,16 +64,23 @@ pre{
 
 <div class="card">
     <button onclick="connectWallet()">Connect MetaMask</button>
+
     <p id="wallet"></p>
+    <p id="balance"></p>
+    <p id="network"></p>
 </div>
 
 <div class="card">
     <h2>Create Loan</h2>
 
-    <input id="interest" placeholder="Interest Rate (500 = 5%)">
-    <input id="duration" placeholder="Duration Seconds">
+    <input id="interest"
+           placeholder="Interest Rate (500 = 5%)">
 
-    <input id="collateral" placeholder="Collateral ETH">
+    <input id="duration"
+           placeholder="Duration Seconds">
+
+    <input id="collateral"
+           placeholder="Collateral ETH">
 
     <button onclick="createLoan()">Request Loan</button>
 </div>
@@ -74,7 +88,8 @@ pre{
 <div class="card">
     <h2>Loan Details</h2>
 
-    <input id="loanId" placeholder="Loan ID">
+    <input id="loanId"
+           placeholder="Loan ID">
 
     <button onclick="viewLoan()">Load Loan</button>
 
@@ -84,9 +99,12 @@ pre{
 <div class="card">
     <h2>Repayment Amount</h2>
 
-    <input id="repayLoanId" placeholder="Loan ID">
+    <input id="repayLoanId"
+           placeholder="Loan ID">
 
-    <button onclick="repaymentAmount()">Get Amount</button>
+    <button onclick="repaymentAmount()">
+        Get Amount
+    </button>
 
     <pre id="repayOutput"></pre>
 </div>
@@ -94,7 +112,8 @@ pre{
 <div class="card">
     <h2>Fund Loan</h2>
 
-    <input id="fundLoanId" placeholder="Loan ID">
+    <input id="fundLoanId"
+           placeholder="Loan ID">
 
     <button onclick="fundLoan()">Fund</button>
 </div>
@@ -102,7 +121,8 @@ pre{
 <div class="card">
     <h2>Repay Loan</h2>
 
-    <input id="repayId" placeholder="Loan ID">
+    <input id="repayId"
+           placeholder="Loan ID">
 
     <button onclick="repayLoan()">Repay</button>
 </div>
@@ -110,9 +130,22 @@ pre{
 <div class="card">
     <h2>Claim Collateral</h2>
 
-    <input id="claimId" placeholder="Loan ID">
+    <input id="claimId"
+           placeholder="Loan ID">
 
-    <button onclick="claimCollateral()">Claim</button>
+    <button onclick="claimCollateral()">
+        Claim
+    </button>
+</div>
+
+<div class="card">
+    <h2>Debug</h2>
+
+    <button onclick="testContract()">
+        Test Contract
+    </button>
+
+    <pre id="debug"></pre>
 </div>
 
 <script>
@@ -134,153 +167,287 @@ let provider;
 let signer;
 let contract;
 
-async function connectWallet(){
+async function connectWallet() {
 
-    provider =
-        new ethers.BrowserProvider(window.ethereum);
+    try {
 
-    await provider.send(
-        "eth_requestAccounts",
-        []
-    );
+        provider =
+            new ethers.BrowserProvider(window.ethereum);
 
-    signer =
-        await provider.getSigner();
-
-    contract =
-        new ethers.Contract(
-            CONTRACT_ADDRESS,
-            ABI,
-            signer
+        await provider.send(
+            "eth_requestAccounts",
+            []
         );
 
-    document.getElementById("wallet")
-        .innerHTML =
-        await signer.getAddress();
-}
+        signer =
+            await provider.getSigner();
 
-async function createLoan(){
+        contract =
+            new ethers.Contract(
+                CONTRACT_ADDRESS,
+                ABI,
+                signer
+            );
 
-    const interest =
-        document.getElementById("interest").value;
+        const address =
+            await signer.getAddress();
 
-    const duration =
-        document.getElementById("duration").value;
+        const balance =
+            await provider.getBalance(address);
 
-    const collateral =
-        document.getElementById("collateral").value;
+        const network =
+            await provider.getNetwork();
 
-    const tx =
-        await contract.depositCollateralAndRequestLoan(
-            interest,
-            duration,
-            {
-                value:
-                ethers.parseEther(collateral)
-            }
-        );
-
-    await tx.wait();
-
-    alert("Loan Created");
-}
-
-async function viewLoan(){
-
-    const id =
-        document.getElementById("loanId").value;
-
-    const loan =
-        await contract.loans(id);
-
-    document.getElementById("loanOutput")
-        .textContent =
-        JSON.stringify(
-            loan,
-            (_,v)=>
-            typeof v==="bigint"
-            ? v.toString()
-            : v,
-            2
-        );
-}
-
-async function repaymentAmount(){
-
-    const id =
         document.getElementById(
-            "repayLoanId"
-        ).value;
+            "wallet"
+        ).innerHTML =
+            "Wallet: " + address;
 
-    const amount =
-        await contract.getRepaymentAmount(id);
+        document.getElementById(
+            "balance"
+        ).innerHTML =
+            "Balance: "
+            + ethers.formatEther(balance)
+            + " ETH";
 
-    document.getElementById("repayOutput")
-        .innerHTML =
-        ethers.formatEther(amount)
-        + " ETH";
+        document.getElementById(
+            "network"
+        ).innerHTML =
+            "Chain ID: "
+            + network.chainId.toString();
+
+    } catch(err) {
+
+        console.error(err);
+        alert(err.message);
+    }
 }
 
-async function fundLoan(){
+async function createLoan() {
 
-    const id =
+    try {
+
+        const interest =
+            document.getElementById("interest")
+            .value.trim();
+
+        const duration =
+            document.getElementById("duration")
+            .value.trim();
+
+        const collateral =
+            document.getElementById("collateral")
+            .value.trim();
+
+        if(
+            !interest ||
+            !duration ||
+            !collateral
+        ){
+            alert("Fill all fields");
+            return;
+        }
+
+        const value =
+            ethers.parseEther(collateral);
+
+        const tx =
+            await contract.depositCollateralAndRequestLoan(
+                BigInt(interest),
+                BigInt(duration),
+                {
+                    value: value
+                }
+            );
+
         document.getElementById(
-            "fundLoanId"
-        ).value;
+            "debug"
+        ).textContent =
+            "Transaction: "
+            + tx.hash;
 
-    const loan =
-        await contract.loans(id);
+        await tx.wait();
 
-    const tx =
-        await contract.fundLoan(
-            id,
-            {
-                value: loan.loanAmount
-            }
+        alert("Loan Created");
+
+    } catch(err) {
+
+        console.error(err);
+
+        alert(
+            err.reason ||
+            err.shortMessage ||
+            err.message
         );
-
-    await tx.wait();
-
-    alert("Loan Funded");
+    }
 }
 
-async function repayLoan(){
+async function viewLoan() {
 
-    const id =
+    try {
+
+        const id =
+            document.getElementById("loanId")
+            .value;
+
+        const loan =
+            await contract.loans(id);
+
         document.getElementById(
-            "repayId"
-        ).value;
+            "loanOutput"
+        ).textContent =
+            JSON.stringify(
+                loan,
+                (_,v)=>
+                typeof v==="bigint"
+                ? v.toString()
+                : v,
+                2
+            );
 
-    const amount =
-        await contract.getRepaymentAmount(id);
+    } catch(err) {
 
-    const tx =
-        await contract.repayLoan(
-            id,
-            {
-                value: amount
-            }
-        );
-
-    await tx.wait();
-
-    alert("Loan Repaid");
+        console.error(err);
+        alert(err.message);
+    }
 }
 
-async function claimCollateral(){
+async function repaymentAmount() {
 
-    const id =
+    try {
+
+        const id =
+            document.getElementById(
+                "repayLoanId"
+            ).value;
+
+        const amount =
+            await contract.getRepaymentAmount(id);
+
         document.getElementById(
-            "claimId"
-        ).value;
+            "repayOutput"
+        ).innerHTML =
+            ethers.formatEther(amount)
+            + " ETH";
 
-    const tx =
-        await contract.claimCollateral(id);
+    } catch(err) {
 
-    await tx.wait();
+        console.error(err);
+        alert(err.message);
+    }
+}
 
-    alert("Collateral Claimed");
+async function fundLoan() {
+
+    try {
+
+        const id =
+            document.getElementById(
+                "fundLoanId"
+            ).value;
+
+        const loan =
+            await contract.loans(id);
+
+        const tx =
+            await contract.fundLoan(
+                id,
+                {
+                    value:
+                    loan.loanAmount
+                }
+            );
+
+        await tx.wait();
+
+        alert("Loan Funded");
+
+    } catch(err) {
+
+        console.error(err);
+        alert(err.message);
+    }
+}
+
+async function repayLoan() {
+
+    try {
+
+        const id =
+            document.getElementById(
+                "repayId"
+            ).value;
+
+        const amount =
+            await contract.getRepaymentAmount(id);
+
+        const tx =
+            await contract.repayLoan(
+                id,
+                {
+                    value: amount
+                }
+            );
+
+        await tx.wait();
+
+        alert("Loan Repaid");
+
+    } catch(err) {
+
+        console.error(err);
+        alert(err.message);
+    }
+}
+
+async function claimCollateral() {
+
+    try {
+
+        const id =
+            document.getElementById(
+                "claimId"
+            ).value;
+
+        const tx =
+            await contract.claimCollateral(id);
+
+        await tx.wait();
+
+        alert("Collateral Claimed");
+
+    } catch(err) {
+
+        console.error(err);
+        alert(err.message);
+    }
+}
+
+async function testContract() {
+
+    try {
+
+        const id =
+            await contract.nextLoanId();
+
+        document.getElementById(
+            "debug"
+        ).textContent =
+            "Connected \n" +
+            "Next Loan ID: "
+            + id.toString();
+
+    } catch(err) {
+
+        console.error(err);
+
+        document.getElementById(
+            "debug"
+        ).textContent =
+            err.message;
+    }
 }
 </script>
+
 </body>
 </html>
