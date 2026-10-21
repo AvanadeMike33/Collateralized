@@ -1,6 +1,7 @@
 # Collateralized
 
 <img width="2544" height="928" alt="image" src="https://github.com/user-attachments/assets/0edbdd91-0123-4cb0-8bee-937fe6526313" />
+<img width="2542" height="954" alt="image" src="https://github.com/user-attachments/assets/a6d4f62c-d191-4807-9893-72571609130f" />
 
 <img width="1927" height="889" alt="image" src="https://github.com/user-attachments/assets/c656593e-13ef-42bd-a9d0-4e98dafb9206" />
 <img width="1704" height="816" alt="image" src="https://github.com/user-attachments/assets/4dbfbfcd-ce13-4096-b805-6795cfceff43" />
