@@ -7,8 +7,10 @@ MINER [Sepolia PoW Faucet](https://sepolia-faucet.pk910.de)
 REMIX  [Collateralized](https://app.remix.live/#lang=en&optimize&runs=200&evmVersion&version=soljson-v0.8.34+commit.80d5c536.js)
 
 ETHER ACCOUNT [Account](https://sepolia.etherscan.io/tx/0x84bc4dbf7a6c75b34697760087c628f55c7e0451e3f8130d5c784f75d3318b10)
+
 CONTRACT  [Contract Creation](https://sepolia.etherscan.io/tx/0x84bc4dbf7a6c75b34697760087c628f55c7e0451e3f8130d5c784f75d3318b10)
-CONTRACT  [Fund Loan] (https://sepolia.etherscan.io/tx/0x511d161f5316aa0182da3687fb966d947c27e555cd6fd11216199d448d9fe170)
+
+CONTRACT  [Fund Loan](https://sepolia.etherscan.io/tx/0x511d161f5316aa0182da3687fb966d947c27e555cd6fd11216199d448d9fe170)
 
 
 
