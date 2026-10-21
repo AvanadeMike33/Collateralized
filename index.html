@@ -171,6 +171,19 @@ async function connectWallet() {
 
     try {
 
+        if (!window.ethereum) {
+            alert("MetaMask not installed");
+            return;
+        }
+
+        // Switch to Sepolia
+        await window.ethereum.request({
+            method: "wallet_switchEthereumChain",
+            params: [{
+                chainId: "0xaa36a7"
+            }]
+        });
+
         provider =
             new ethers.BrowserProvider(window.ethereum);
 
@@ -198,28 +211,29 @@ async function connectWallet() {
         const network =
             await provider.getNetwork();
 
-        document.getElementById(
-            "wallet"
-        ).innerHTML =
+        document.getElementById("wallet").innerHTML =
             "Wallet: " + address;
 
-        document.getElementById(
-            "balance"
-        ).innerHTML =
-            "Balance: "
-            + ethers.formatEther(balance)
-            + " ETH";
+        document.getElementById("balance").innerHTML =
+            "Balance: " +
+            ethers.formatEther(balance) +
+            " ETH";
 
-        document.getElementById(
-            "network"
-        ).innerHTML =
-            "Chain ID: "
-            + network.chainId.toString();
+        document.getElementById("network").innerHTML =
+            "Chain ID: " +
+            network.chainId.toString();
+
+        alert("Connected to Sepolia");
 
     } catch(err) {
 
         console.error(err);
-        alert(err.message);
+
+        alert(
+            err.reason ||
+            err.shortMessage ||
+            err.message
+        );
     }
 }
 
