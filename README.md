@@ -15,7 +15,7 @@ CONTRACT  [Contract Creation](https://sepolia.etherscan.io/tx/0x84bc4dbf7a6c75b3
 
                           [Contract Deploy](https://sepolia.etherscan.io/address/0x574483ba69EaE314988cC0eDBFbfea17B53759fE)
                           
-                           [Contract Deploy]((https://sepolia.etherscan.io/verifycontract?a=0x574483ba69EaE314988cC0eDBFbfea17B53759fE)
+                           [Contract Deploy](https://sepolia.etherscan.io/verifycontract?a=0x574483ba69EaE314988cC0eDBFbfea17B53759fE)
                            
                             [Contract Deploy](https://sepolia.etherscan.io/address/0x574483ba69EaE314988cC0eDBFbfea17B53759fE#code)
                           
